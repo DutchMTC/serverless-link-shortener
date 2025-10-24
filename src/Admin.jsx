@@ -179,23 +179,20 @@ function Admin() {
       <h1>Admin Panel</h1>
       <div className="filters">
         <div className="form-group">
-          <label>Filter by domain</label>
-          <div className="domain-filter-buttons">
-            <button
-              className={`filter-button ${domainFilter === '' ? 'active' : ''}`}
-              onClick={() => setDomainFilter('')}
+          <label htmlFor="domain-filter">Filter by domain</label>
+          <div className="select-wrapper">
+            <select
+              id="domain-filter"
+              value={domainFilter}
+              onChange={(e) => setDomainFilter(e.target.value)}
             >
-              All Domains
-            </button>
-            {domains.map(domain => (
-              <button
-                key={domain}
-                className={`filter-button ${domainFilter === domain ? 'active' : ''}`}
-                onClick={() => setDomainFilter(domain)}
-              >
-                {domain === '*' ? 'All Domains (Wildcard)' : domain}
-              </button>
-            ))}
+              <option value="">All Domains</option>
+              {domains.map(domain => (
+                <option key={domain} value={domain}>
+                  {domain === '*' ? 'All Domains (Wildcard)' : domain}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

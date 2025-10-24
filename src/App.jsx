@@ -45,21 +45,20 @@ function App() {
       try {
         const response = await fetch('/api/domains');
         const data = await response.json();
-        const availableDomains = data.domains || [];
-        setDomains(availableDomains);
-        // Set default domain to current host if available, otherwise the first in the list
+        const apiDomains = data.domains || [];
         const currentHost = window.location.host;
-        if (availableDomains.includes(currentHost)) {
-          setSelectedDomain(currentHost);
-        } else if (availableDomains.length > 0) {
-          setSelectedDomain(availableDomains[0]);
-        } else {
-          setSelectedDomain(currentHost); // Fallback to current host
-        }
+
+        // Ensure the current host is always in the list, and the list is unique.
+        const allDomains = ['*', ...new Set([currentHost, ...apiDomains])];
+        setDomains(allDomains);
+
+        // Set default domain to current host.
+        setSelectedDomain(currentHost);
       } catch (err) {
         console.error('Failed to fetch domains:', err);
-        setDomains([]);
-        setSelectedDomain(window.location.host); // Fallback
+        // Fallback to just using the current host if the API fails.
+        setDomains(['*', window.location.host]);
+        setSelectedDomain(window.location.host);
       }
     };
 
@@ -236,7 +235,9 @@ function App() {
                   disabled={loading}
                 >
                   {domains.map(domain => (
-                    <option key={domain} value={domain}>{domain}</option>
+                    <option key={domain} value={domain}>
+                      {domain === '*' ? 'All Domains' : domain}
+                    </option>
                   ))}
                 </select>
               ) : (

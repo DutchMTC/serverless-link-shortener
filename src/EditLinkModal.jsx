@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './EditLinkModal.css';
 
-function EditLinkModal({ link, onSave, onCancel }) {
+function EditLinkModal({ link, onSave, onCancel, domains = [] }) {
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
@@ -11,6 +11,7 @@ function EditLinkModal({ link, onSave, onCancel }) {
         embeds: link.embeds !== false, // Default to true if undefined
         cloaking: link.cloaking || false,
         metadata: link.metadata || { title: '', description: '', image: '' },
+        domain: link.domain || '',
       });
     }
   }, [link]);
@@ -37,7 +38,12 @@ function EditLinkModal({ link, onSave, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(link.path, formData);
+    const finalData = { ...formData };
+    // Don't send the domain if it hasn't changed
+    if (finalData.domain === link.domain) {
+      delete finalData.domain;
+    }
+    onSave(link, finalData);
   };
 
   return (
@@ -55,6 +61,21 @@ function EditLinkModal({ link, onSave, onCancel }) {
               onChange={handleChange}
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="domain">Domain</label>
+            <select
+              id="domain"
+              name="domain"
+              value={formData.domain}
+              onChange={handleChange}
+            >
+              <option value="*">All Domains</option>
+              {domains.map(domain => (
+                <option key={domain} value={domain}>{domain}</option>
+              ))}
+            </select>
           </div>
 
           <div className="setting-item">

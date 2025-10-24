@@ -69,12 +69,31 @@ export async function onRequestPut(context) {
     }
 
     const existingData = JSON.parse(existingValue);
-    // Merge the updated properties into the existing data
     const newData = { ...existingData, ...updatedProperties };
 
-    await env.LINKS.put(key, JSON.stringify(newData));
+    // Check if the domain has changed
+    if (updatedProperties.domain && updatedProperties.domain !== existingData.domain) {
+      const [_originalDomain, ...pathParts] = key.split(':');
+      const path = pathParts.join(':');
+      const newKey = `${updatedProperties.domain}:${path}`;
+
+      // Check for conflict with the new key
+      const conflictCheck = await env.LINKS.get(newKey);
+      if (conflictCheck) {
+        return new Response(JSON.stringify({ error: `The path "${path}" already exists on the domain "${updatedProperties.domain}".` }), { status: 409 });
+      }
+
+      // "Move" the link by creating a new entry and deleting the old one
+      await env.LINKS.put(newKey, JSON.stringify(newData));
+      await env.LINKS.delete(key);
+    } else {
+      // Just update the data if the domain is the same
+      await env.LINKS.put(key, JSON.stringify(newData));
+    }
+
     return new Response(JSON.stringify({ message: 'Link updated successfully.' }), { status: 200 });
   } catch (error) {
+    console.error(error);
     return new Response(JSON.stringify({ error: 'Failed to update link.' }), { status: 500 });
   }
 }

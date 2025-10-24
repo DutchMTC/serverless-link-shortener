@@ -35,9 +35,16 @@ function Admin() {
       try {
         const response = await fetch('/api/domains');
         const data = await response.json();
-        setDomains(data.domains || []);
+        const apiDomains = data.domains || [];
+        const currentHost = window.location.host;
+
+        // Ensure the current host is always in the list, and the list is unique.
+        const allDomains = [...new Set([currentHost, ...apiDomains])];
+        setDomains(allDomains);
       } catch (err) {
         console.error('Failed to fetch domains:', err);
+        // Fallback to just using the current host if the API fails.
+        setDomains([window.location.host]);
       }
     };
 
@@ -101,7 +108,7 @@ function Admin() {
     }
   };
 
-  const handleUpdate = async (key, updatedProperties) => {
+  const handleUpdate = async (link, updatedProperties) => {
     try {
       const response = await fetch('/api/admin/links', {
         method: 'PUT',
@@ -109,7 +116,7 @@ function Admin() {
           'Content-Type': 'application/json',
           'X-Admin-Password': password,
         },
-        body: JSON.stringify({ key, ...updatedProperties }),
+        body: JSON.stringify({ key: link.key, ...updatedProperties }),
       });
       if (!response.ok) throw new Error('Failed to update link.');
       setEditingLink(null);
@@ -172,17 +179,24 @@ function Admin() {
       <h1>Admin Panel</h1>
       <div className="filters">
         <div className="form-group">
-          <label htmlFor="domain-filter">Filter by domain</label>
-          <select
-            id="domain-filter"
-            value={domainFilter}
-            onChange={(e) => setDomainFilter(e.target.value)}
-          >
-            <option value="">All Domains</option>
+          <label>Filter by domain</label>
+          <div className="domain-filter-buttons">
+            <button
+              className={`filter-button ${domainFilter === '' ? 'active' : ''}`}
+              onClick={() => setDomainFilter('')}
+            >
+              All Domains
+            </button>
             {domains.map(domain => (
-              <option key={domain} value={domain}>{domain}</option>
+              <button
+                key={domain}
+                className={`filter-button ${domainFilter === domain ? 'active' : ''}`}
+                onClick={() => setDomainFilter(domain)}
+              >
+                {domain === '*' ? 'All Domains (Wildcard)' : domain}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
       </div>
       {loading && <p>Loading links...</p>}
@@ -223,6 +237,7 @@ function Admin() {
           link={editingLink}
           onSave={handleUpdate}
           onCancel={() => setEditingLink(null)}
+          domains={domains}
         />
       )}
     </div>

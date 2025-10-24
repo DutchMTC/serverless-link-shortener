@@ -8,6 +8,37 @@
 .admin-container h1 {
   margin-bottom: 1.5rem;
 }
+.filters {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.domain-filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.filter-button:hover {
+  background-color: #f0f0f0;
+}
+
+.filter-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
 
 .table-responsive {
   overflow-x: auto;
@@ -130,5 +161,18 @@ button.danger:hover {
   .links-table td[data-label="Actions"] {
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    .links-table td {
+      word-break: break-all;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .links-table td[data-label="Destination URL"] {
+      white-space: normal;
+      word-break: break-all;
+    }
   }
 }

@@ -5,7 +5,7 @@ export async function onRequestGet(context) {
 
   // Check for both the admin password and the public link creation password.
   const isPasswordSet = env.ADMIN_PASSWORD && env.ADMIN_PASSWORD.length > 0;
-  const passwordProtected = env.LINK_SHORTENER_PASSWORD && env.LINK_SHORTENER_PASSWORD.length > 0;
+  const passwordProtected = env.PASSWORD && env.PASSWORD.length > 0;
 
   return new Response(JSON.stringify({ isPasswordSet, passwordProtected }), {
     headers: {

@@ -3,6 +3,9 @@
 A powerful, self-hosted link shortener built with React, Vite, and Cloudflare Pages. This application allows you to create short, custom links and provides advanced features like metadata customization and link cloaking, all running on the Cloudflare serverless platform.
 
 <img width="500" height="757" alt="image" src="https://github.com/user-attachments/assets/5982c6ee-d5fd-43f9-b283-e0b23d27a116" />
+<br>
+<img width="500" height="486" alt="image" src="https://github.com/user-attachments/assets/f11d9ca1-ec9d-410f-8230-e67686121f4b" />
+
 
 ## Features
 

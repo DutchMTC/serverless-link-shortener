@@ -6,6 +6,8 @@ function App() {
   const [authStatus, setAuthStatus] = useState('loading'); // 'loading', 'required', 'not_required'
   const [password, setPassword] = useState('');
   const [sessionPassword, setSessionPassword] = useState('');
+  const [domains, setDomains] = useState([]);
+  const [selectedDomain, setSelectedDomain] = useState('');
 
   // Form State
   const [url, setUrl] = useState('');
@@ -14,6 +16,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const [copyStatus, setCopyStatus] = useState('Copy');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [enableEmbeds, setEnableEmbeds] = useState(true);
   const [enableMetadata, setEnableMetadata] = useState(false);
@@ -37,7 +40,30 @@ function App() {
         setAuthStatus('not_required'); // Fail open
       }
     };
+
+    const fetchDomains = async () => {
+      try {
+        const response = await fetch('/api/domains');
+        const data = await response.json();
+        const apiDomains = data.domains || [];
+        const currentHost = window.location.host;
+
+        // Ensure the current host is always in the list, and the list is unique.
+        const allDomains = ['*', ...new Set([currentHost, ...apiDomains])];
+        setDomains(allDomains);
+
+        // Set default domain to current host.
+        setSelectedDomain(currentHost);
+      } catch (err) {
+        console.error('Failed to fetch domains:', err);
+        // Fallback to just using the current host if the API fails.
+        setDomains(['*', window.location.host]);
+        setSelectedDomain(window.location.host);
+      }
+    };
+
     checkAuthStatus();
+    fetchDomains();
   }, []);
 
   const handlePasswordSubmit = async (event) => {
@@ -77,6 +103,7 @@ function App() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setCopyStatus('Copy');
 
     const metadata = enableMetadata ? {
       title: metadataTitle,
@@ -99,6 +126,7 @@ function App() {
           embeds: enableEmbeds,
           metadata,
           cloaking: enableCloaking,
+          domain: selectedDomain,
         }),
       });
 
@@ -122,11 +150,23 @@ function App() {
     setIsPathValid(true);
     setError(null);
     setResult(null);
+    setCopyStatus('Copy');
     setEnableMetadata(false);
     setMetadataTitle('');
     setMetadataDescription('');
     setMetadataImage('');
     setEnableCloaking(false);
+  };
+
+  const handleCopy = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(result.shortUrl).then(() => {
+      setCopyStatus('Copied!');
+      setTimeout(() => setCopyStatus('Copy'), 2000);
+    }, () => {
+      setCopyStatus('Error!');
+      setTimeout(() => setCopyStatus('Copy'), 2000);
+    });
   };
 
   if (authStatus === 'loading') {
@@ -187,24 +227,41 @@ function App() {
           <div className="form-group">
             <label>Short link</label>
             <div className="short-link-group">
-              <div className="domain-select">{window.location.host}</div>
-              <span>/</span>
-              <input
-                type="text"
-                id="customPath"
-                value={customPath}
-                onChange={(e) => {
-                  const newPath = e.target.value;
-                  if (!/^[a-zA-Z0-9/-]*$/.test(newPath)) {
-                    setIsPathValid(false);
-                  } else {
-                    setIsPathValid(true);
-                  }
-                  setCustomPath(newPath.replace(/[^a-zA-Z0-9/-]/g, ''));
-                }}
-                placeholder="my-custom-link"
-                disabled={loading}
-              />
+              {domains.length > 1 ? (
+                <select
+                  value={selectedDomain}
+                  onChange={(e) => setSelectedDomain(e.target.value)}
+                  className="domain-select"
+                  disabled={loading}
+                >
+                  {domains.map(domain => (
+                    <option key={domain} value={domain}>
+                      {domain === '*' ? 'All Domains' : domain}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="domain-select">{selectedDomain || window.location.host}</div>
+              )}
+              <div className="custom-path-group">
+                <span>/</span>
+                <input
+                  type="text"
+                  id="customPath"
+                  value={customPath}
+                  onChange={(e) => {
+                    const newPath = e.target.value;
+                    if (!/^[a-zA-Z0-9/-]*$/.test(newPath)) {
+                      setIsPathValid(false);
+                    } else {
+                      setIsPathValid(true);
+                    }
+                    setCustomPath(newPath.replace(/[^a-zA-Z0-9/-]/g, ''));
+                  }}
+                  placeholder="my-custom-link"
+                  disabled={loading}
+                />
+              </div>
             </div>
             {!isPathValid && (
               <p className="validation-error">
@@ -315,9 +372,19 @@ function App() {
       {result && !error && (
         <div className="result">
           <p>Your shortened link is ready!</p>
-          <a href={result.shortUrl} target="_blank" rel="noopener noreferrer">
-            {result.shortUrl}
-          </a>
+          <div className="result-link-container">
+            <a href={result.shortUrl} target="_blank" rel="noopener noreferrer" className="result-url">
+              {result.shortUrl}
+            </a>
+            <div className="result-buttons">
+              <a href={result.shortUrl} target="_blank" rel="noopener noreferrer" className="button secondary">
+                Visit
+              </a>
+              <button onClick={handleCopy} className="button primary">
+                {copyStatus}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

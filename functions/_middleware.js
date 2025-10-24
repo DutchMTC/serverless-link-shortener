@@ -3,6 +3,7 @@
 export async function onRequest(context) {
   const { request, env, next } = context;
   const url = new URL(request.url);
+  const domain = url.hostname;
   const path = url.pathname.slice(1); // Remove leading '/'
 
   // 1. Check for KV binding first
@@ -25,7 +26,14 @@ export async function onRequest(context) {
 
   try {
     // 3. Look up the path in the KV store
-    const storedValue = await env.LINKS.get(path);
+    const domainKey = `${domain}:${path}`;
+    let storedValue = await env.LINKS.get(domainKey);
+
+    // If domain-specific link doesn't exist, check for a wildcard link
+    if (!storedValue) {
+      const wildcardKey = `*:${path}`;
+      storedValue = await env.LINKS.get(wildcardKey);
+    }
 
     if (storedValue) {
       const linkData = JSON.parse(storedValue);

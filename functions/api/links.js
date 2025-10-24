@@ -39,7 +39,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    let { url, customPath, embeds, metadata, cloaking } = await request.json();
+    let { url, customPath, embeds, metadata, cloaking, domain } = await request.json();
 
     // 1. Validate and normalize URL
     if (!url) {
@@ -61,8 +61,9 @@ export async function onRequestPost(context) {
     }
     let path = customPath || generateRandomPath();
 
-    // 3. Check if the path already exists
-    const existingLink = await env.LINKS.get(path);
+    // 3. Check if the path already exists for the given domain
+    const key = `${domain}:${path}`;
+    const existingLink = await env.LINKS.get(key);
     if (existingLink) {
       return new Response(JSON.stringify({ error: `The path "${path}" is already in use. Please choose another.` }), {
         status: 409, // Conflict
@@ -77,8 +78,9 @@ export async function onRequestPost(context) {
       embeds: embeds === true, // Ensure it's a boolean
       metadata: metadata || null,
       cloaking: cloaking === true,
+      domain: domain,
     };
-    await env.LINKS.put(path, JSON.stringify(linkData));
+    await env.LINKS.put(key, JSON.stringify(linkData));
 
     // 5. Return the successful response
     const baseUrl = new URL(request.url);
@@ -129,7 +131,7 @@ export async function onRequestPut(context) {
       });
     }
 
-    let { url, path } = await request.json();
+    let { url, path, domain } = await request.json();
 
     // 1. Validate and normalize input
     if (!path || !url) {
@@ -143,7 +145,8 @@ export async function onRequestPut(context) {
     }
 
     // 2. Check if the link exists
-    const existingData = await env.LINKS.get(path);
+    const key = `${domain}:${path}`;
+    const existingData = await env.LINKS.get(key);
     if (!existingData) {
       return new Response(JSON.stringify({ error: 'The specified path does not exist.' }), {
         status: 404, // Not Found
@@ -163,8 +166,9 @@ export async function onRequestPut(context) {
     }
 
     // 4. Update the link and make it permanent by removing the timestamp
-    const permanentLinkData = { url: url, embeds: linkData.embeds }; // Preserve embed setting
-    await env.LINKS.put(path, JSON.stringify(permanentLinkData));
+    const permanentLinkData = { ...linkData, url: url };
+    delete permanentLinkData.createdAt; // Make it permanent
+    await env.LINKS.put(key, JSON.stringify(permanentLinkData));
 
     // 5. Return the successful response
     return new Response(JSON.stringify({

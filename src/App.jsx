@@ -243,23 +243,25 @@ function App() {
               ) : (
                 <div className="domain-select">{selectedDomain || window.location.host}</div>
               )}
-              <span>/</span>
-              <input
-                type="text"
-                id="customPath"
-                value={customPath}
-                onChange={(e) => {
-                  const newPath = e.target.value;
-                  if (!/^[a-zA-Z0-9/-]*$/.test(newPath)) {
-                    setIsPathValid(false);
-                  } else {
-                    setIsPathValid(true);
-                  }
-                  setCustomPath(newPath.replace(/[^a-zA-Z0-9/-]/g, ''));
-                }}
-                placeholder="my-custom-link"
-                disabled={loading}
-              />
+              <div className="custom-path-group">
+                <span>/</span>
+                <input
+                  type="text"
+                  id="customPath"
+                  value={customPath}
+                  onChange={(e) => {
+                    const newPath = e.target.value;
+                    if (!/^[a-zA-Z0-9/-]*$/.test(newPath)) {
+                      setIsPathValid(false);
+                    } else {
+                      setIsPathValid(true);
+                    }
+                    setCustomPath(newPath.replace(/[^a-zA-Z0-9/-]/g, ''));
+                  }}
+                  placeholder="my-custom-link"
+                  disabled={loading}
+                />
+              </div>
             </div>
             {!isPathValid && (
               <p className="validation-error">

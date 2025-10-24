@@ -221,8 +221,10 @@ function Admin() {
                   {link.createdAt ? new Date(link.createdAt).toLocaleString() : 'N/A'}
                 </td>
                 <td data-label="Actions">
-                  <button onClick={() => setEditingLink(link)} className="secondary">Edit</button>
-                  <button onClick={() => handleDelete(link.key)} className="danger">Delete</button>
+                  <div className="action-buttons">
+                    <button onClick={() => setEditingLink(link)} className="secondary">Edit</button>
+                    <button onClick={() => handleDelete(link.key)} className="danger">Delete</button>
+                  </div>
                 </td>
               </tr>
             ))}

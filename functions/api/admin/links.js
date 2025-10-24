@@ -31,8 +31,7 @@ export async function onRequestGet(context) {
         const data = JSON.parse(value);
         links.push({
           path: key.name,
-          url: data.url,
-          createdAt: data.createdAt, // Will be undefined for older links, which is fine
+          ...data,
         });
       }
     }
@@ -51,7 +50,7 @@ export async function onRequestPut(context) {
 
   try {
     const { request, env } = context;
-    const { path, newUrl } = await request.json();
+    const { path, ...updatedProperties } = await request.json();
 
     const existingValue = await env.LINKS.get(path);
     if (!existingValue) {
@@ -59,9 +58,10 @@ export async function onRequestPut(context) {
     }
 
     const data = JSON.parse(existingValue);
-    data.url = newUrl; // Update the URL
+    // Merge the updated properties into the existing data
+    const newData = { ...data, ...updatedProperties };
 
-    await env.LINKS.put(path, JSON.stringify(data));
+    await env.LINKS.put(path, JSON.stringify(newData));
     return new Response(JSON.stringify({ message: 'Link updated successfully.' }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Failed to update link.' }), { status: 500 });

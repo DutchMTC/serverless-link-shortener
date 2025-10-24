@@ -8,30 +8,42 @@
 
 .table-responsive {
   overflow-x: auto;
+  border: 1px solid #E9EDF1;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .links-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 2rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin-top: 0; /* Removed margin as it's on the container now */
 }
 
 .links-table th,
 .links-table td {
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   text-align: left;
   border-bottom: 1px solid #E9EDF1;
+  white-space: nowrap;
+}
+
+.links-table tr:last-child td {
+  border-bottom: none;
 }
 
 .links-table th {
   background-color: #F8F9FC;
   font-weight: 700;
+  color: #5F6368;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
 }
 
 .links-table td a {
   color: #0056FF;
   text-decoration: none;
+  font-weight: 500;
 }
 
 .links-table td a:hover {
@@ -40,6 +52,12 @@
 
 .links-table td button {
   margin-right: 0.5rem;
+}
+
+.links-table td[data-label="Destination URL"] {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 button.danger {
@@ -52,6 +70,15 @@ button.danger:hover {
 
 /* Responsive Styles */
 @media (max-width: 768px) {
+  .admin-container {
+    padding: 0 0.5rem;
+  }
+
+  .table-responsive {
+    border: none;
+    box-shadow: none;
+  }
+
   .links-table thead {
     display: none;
   }
@@ -68,20 +95,37 @@ button.danger:hover {
     margin-bottom: 1rem;
     border: 1px solid #E9EDF1;
     border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
 
   .links-table td {
     text-align: right;
-    padding-left: 50%;
+    padding: 1rem;
+    padding-left: 45%;
     position: relative;
+    border-bottom: 1px solid #E9EDF1;
+    white-space: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .links-table tr td:last-child {
+    border-bottom: none;
   }
 
   .links-table td::before {
     content: attr(data-label);
     position: absolute;
     left: 1rem;
-    width: calc(50% - 2rem);
+    width: calc(45% - 2rem);
     text-align: left;
     font-weight: 700;
+    color: #5F6368;
+  }
+
+  .links-table td[data-label="Actions"] {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
   }
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './Admin.css';
+import EditLinkModal from './EditLinkModal';
 
 function Admin() {
   const [password, setPassword] = useState('');
@@ -7,7 +8,7 @@ function Admin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [links, setLinks] = useState([]);
-  const [editingLink, setEditingLink] = useState(null);
+  const [editingLink, setEditingLink] = useState(null); // This will now hold the link object
   const [isPasswordSet, setIsPasswordSet] = useState(null); // null = loading
 
   const handleLogin = (e) => {
@@ -82,7 +83,7 @@ function Admin() {
     }
   };
 
-  const handleUpdate = async (path, newUrl) => {
+  const handleUpdate = async (path, updatedProperties) => {
     try {
       const response = await fetch('/api/admin/links', {
         method: 'PUT',
@@ -90,7 +91,7 @@ function Admin() {
           'Content-Type': 'application/json',
           'X-Admin-Password': password,
         },
-        body: JSON.stringify({ path, newUrl }),
+        body: JSON.stringify({ path, ...updatedProperties }),
       });
       if (!response.ok) throw new Error('Failed to update link.');
       setEditingLink(null);
@@ -168,26 +169,13 @@ function Admin() {
               <tr key={link.path}>
                 <td data-label="Short Path">{link.path}</td>
                 <td data-label="Destination URL">
-                  {editingLink === link.path ? (
-                    <input
-                      type="url"
-                      defaultValue={link.url}
-                      onBlur={(e) => handleUpdate(link.path, e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleUpdate(link.path, e.target.value);
-                        if (e.key === 'Escape') setEditingLink(null);
-                      }}
-                      autoFocus
-                    />
-                  ) : (
-                    <a href={link.url} target="_blank" rel="noopener noreferrer">{link.url}</a>
-                  )}
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">{link.url}</a>
                 </td>
                 <td data-label="Created">
                   {link.createdAt ? new Date(link.createdAt).toLocaleString() : 'N/A'}
                 </td>
                 <td data-label="Actions">
-                  <button onClick={() => setEditingLink(link.path)} className="secondary">Edit</button>
+                  <button onClick={() => setEditingLink(link)} className="secondary">Edit</button>
                   <button onClick={() => handleDelete(link.path)} className="danger">Delete</button>
                 </td>
               </tr>
@@ -195,6 +183,13 @@ function Admin() {
           </tbody>
         </table>
       </div>
+      {editingLink && (
+        <EditLinkModal
+          link={editingLink}
+          onSave={handleUpdate}
+          onCancel={() => setEditingLink(null)}
+        />
+      )}
     </div>
   );
 }

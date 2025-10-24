@@ -133,11 +133,11 @@ button.danger:hover {
   }
 
   .links-table td {
-    display: block;
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     padding: 1rem;
-    padding-left: 40%;
-    text-align: right;
+    text-align: left;
     border-bottom: 1px solid #E9EDF1;
     word-break: break-all;
   }
@@ -148,11 +148,10 @@ button.danger:hover {
 
   .links-table td::before {
     content: attr(data-label);
-    position: absolute;
-    left: 1rem;
-    width: calc(40% - 1rem);
-    text-align: left;
-    font-weight: bold;
+    display: block;
+    font-weight: 700;
+    color: #5F6368;
+    margin-bottom: 0.5rem;
   }
 
   .links-table td[data-label="Actions"] {
@@ -163,7 +162,7 @@ button.danger:hover {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
   
   .select-wrapper {

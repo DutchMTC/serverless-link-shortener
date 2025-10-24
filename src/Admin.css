@@ -123,6 +123,7 @@ button.danger:hover {
   .links-table td {
     display: block;
     width: 100%;
+    box-sizing: border-box;
   }
 
   .links-table tr {

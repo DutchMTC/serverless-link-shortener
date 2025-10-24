@@ -231,6 +231,55 @@ button.secondary:hover {
   text-decoration: underline;
 }
 
+.result-link-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+  align-items: flex-start;
+}
+
+.result-url {
+  font-weight: bold;
+}
+
+.result-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.result-buttons .button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.result-buttons .button.primary {
+  background-color: #0056FF;
+  color: #ffffff;
+}
+
+.result-buttons .button.primary:hover {
+  background-color: #0045cc;
+}
+
+.result-buttons .button.secondary {
+  background-color: #ffffff;
+  color: #566280;
+  border-color: #A5B1C9;
+}
+
+.result-buttons .button.secondary:hover {
+  color: #0B1A3D;
+  background-color: #F8F9FC;
+}
+
 .setting-label-group {
   display: flex;
   flex-direction: column;

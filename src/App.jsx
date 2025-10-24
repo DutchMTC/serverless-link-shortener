@@ -14,6 +14,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const [copyStatus, setCopyStatus] = useState('Copy');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [enableEmbeds, setEnableEmbeds] = useState(true);
   const [enableMetadata, setEnableMetadata] = useState(false);
@@ -77,6 +78,7 @@ function App() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setCopyStatus('Copy');
 
     const metadata = enableMetadata ? {
       title: metadataTitle,
@@ -122,11 +124,23 @@ function App() {
     setIsPathValid(true);
     setError(null);
     setResult(null);
+    setCopyStatus('Copy');
     setEnableMetadata(false);
     setMetadataTitle('');
     setMetadataDescription('');
     setMetadataImage('');
     setEnableCloaking(false);
+  };
+
+  const handleCopy = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(result.shortUrl).then(() => {
+      setCopyStatus('Copied!');
+      setTimeout(() => setCopyStatus('Copy'), 2000);
+    }, () => {
+      setCopyStatus('Error!');
+      setTimeout(() => setCopyStatus('Copy'), 2000);
+    });
   };
 
   if (authStatus === 'loading') {
@@ -315,9 +329,19 @@ function App() {
       {result && !error && (
         <div className="result">
           <p>Your shortened link is ready!</p>
-          <a href={result.shortUrl} target="_blank" rel="noopener noreferrer">
-            {result.shortUrl}
-          </a>
+          <div className="result-link-container">
+            <a href={result.shortUrl} target="_blank" rel="noopener noreferrer" className="result-url">
+              {result.shortUrl}
+            </a>
+            <div className="result-buttons">
+              <a href={result.shortUrl} target="_blank" rel="noopener noreferrer" className="button secondary">
+                Visit
+              </a>
+              <button onClick={handleCopy} className="button primary">
+                {copyStatus}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

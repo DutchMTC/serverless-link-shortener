@@ -10,6 +10,8 @@ function Admin() {
   const [links, setLinks] = useState([]);
   const [editingLink, setEditingLink] = useState(null); // This will now hold the link object
   const [isPasswordSet, setIsPasswordSet] = useState(null); // null = loading
+  const [domains, setDomains] = useState([]);
+  const [domainFilter, setDomainFilter] = useState(''); // '' for All Domains
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -28,19 +30,35 @@ function Admin() {
         setIsPasswordSet(false); // Fallback to show an error
       }
     };
+
+    const fetchDomains = async () => {
+      try {
+        const response = await fetch('/api/domains');
+        const data = await response.json();
+        setDomains(data.domains || []);
+      } catch (err) {
+        console.error('Failed to fetch domains:', err);
+      }
+    };
+
     checkPasswordStatus();
+    fetchDomains();
   }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchLinks();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, domainFilter]);
 
   const fetchLinks = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/links', {
+      const url = new URL('/api/admin/links', window.location.origin);
+      if (domainFilter) {
+        url.searchParams.append('domain', domainFilter);
+      }
+      const response = await fetch(url.toString(), {
         headers: { 'X-Admin-Password': password },
       });
       if (!response.ok) {
@@ -63,8 +81,8 @@ function Admin() {
     }
   };
 
-  const handleDelete = async (path) => {
-    if (!window.confirm(`Are you sure you want to delete the link for "${path}"?`)) {
+  const handleDelete = async (key) => {
+    if (!window.confirm(`Are you sure you want to delete the link "${key}"?`)) {
       return;
     }
     try {
@@ -74,16 +92,16 @@ function Admin() {
           'Content-Type': 'application/json',
           'X-Admin-Password': password,
         },
-        body: JSON.stringify({ path }),
+        body: JSON.stringify({ key }),
       });
       if (!response.ok) throw new Error('Failed to delete link.');
-      setLinks(links.filter((link) => link.path !== path));
+      setLinks(links.filter((link) => link.key !== key));
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const handleUpdate = async (path, updatedProperties) => {
+  const handleUpdate = async (key, updatedProperties) => {
     try {
       const response = await fetch('/api/admin/links', {
         method: 'PUT',
@@ -91,7 +109,7 @@ function Admin() {
           'Content-Type': 'application/json',
           'X-Admin-Password': password,
         },
-        body: JSON.stringify({ path, ...updatedProperties }),
+        body: JSON.stringify({ key, ...updatedProperties }),
       });
       if (!response.ok) throw new Error('Failed to update link.');
       setEditingLink(null);
@@ -152,6 +170,21 @@ function Admin() {
   return (
     <div className="admin-container">
       <h1>Admin Panel</h1>
+      <div className="filters">
+        <div className="form-group">
+          <label htmlFor="domain-filter">Filter by domain</label>
+          <select
+            id="domain-filter"
+            value={domainFilter}
+            onChange={(e) => setDomainFilter(e.target.value)}
+          >
+            <option value="">All Domains</option>
+            {domains.map(domain => (
+              <option key={domain} value={domain}>{domain}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       {loading && <p>Loading links...</p>}
       {error && <p className="error">{error}</p>}
       <div className="table-responsive">
@@ -159,6 +192,7 @@ function Admin() {
           <thead>
             <tr>
               <th>Short Path</th>
+              <th>Domain</th>
               <th>Destination URL</th>
               <th>Created</th>
               <th>Actions</th>
@@ -166,8 +200,9 @@ function Admin() {
           </thead>
           <tbody>
             {links.map((link) => (
-              <tr key={link.path}>
+              <tr key={link.key}>
                 <td data-label="Short Path">{link.path}</td>
+                <td data-label="Domain">{link.domain}</td>
                 <td data-label="Destination URL">
                   <a href={link.url} target="_blank" rel="noopener noreferrer">{link.url}</a>
                 </td>
@@ -176,7 +211,7 @@ function Admin() {
                 </td>
                 <td data-label="Actions">
                   <button onClick={() => setEditingLink(link)} className="secondary">Edit</button>
-                  <button onClick={() => handleDelete(link.path)} className="danger">Delete</button>
+                  <button onClick={() => handleDelete(link.key)} className="danger">Delete</button>
                 </td>
               </tr>
             ))}

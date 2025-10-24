@@ -21,22 +21,33 @@ export async function onRequestGet(context) {
   if (authError) return authError;
 
   try {
-    const { env } = context;
+    const { env, request } = context;
+    const url = new URL(request.url);
+    const domainFilter = url.searchParams.get('domain');
+
     const list = await env.LINKS.list();
     const links = [];
 
     for (const key of list.keys) {
-      const value = await env.LINKS.get(key.name);
-      if (value) {
-        const data = JSON.parse(value);
-        links.push({
-          path: key.name,
-          ...data,
-        });
+      const [domain, ...pathParts] = key.name.split(':');
+      const path = pathParts.join(':');
+
+      if (!domainFilter || domain === domainFilter) {
+        const value = await env.LINKS.get(key.name);
+        if (value) {
+          const data = JSON.parse(value);
+          links.push({
+            key: key.name,
+            path: path,
+            domain: domain,
+            ...data,
+          });
+        }
       }
     }
     return new Response(JSON.stringify(links), { headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
+    console.error(error);
     return new Response(JSON.stringify({ error: 'Failed to fetch links.' }), { status: 500 });
   }
 }
@@ -50,18 +61,18 @@ export async function onRequestPut(context) {
 
   try {
     const { request, env } = context;
-    const { path, ...updatedProperties } = await request.json();
+    const { key, ...updatedProperties } = await request.json();
 
-    const existingValue = await env.LINKS.get(path);
+    const existingValue = await env.LINKS.get(key);
     if (!existingValue) {
       return new Response(JSON.stringify({ error: 'Link not found.' }), { status: 404 });
     }
 
-    const data = JSON.parse(existingValue);
+    const existingData = JSON.parse(existingValue);
     // Merge the updated properties into the existing data
-    const newData = { ...data, ...updatedProperties };
+    const newData = { ...existingData, ...updatedProperties };
 
-    await env.LINKS.put(path, JSON.stringify(newData));
+    await env.LINKS.put(key, JSON.stringify(newData));
     return new Response(JSON.stringify({ message: 'Link updated successfully.' }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Failed to update link.' }), { status: 500 });
@@ -77,9 +88,9 @@ export async function onRequestDelete(context) {
 
   try {
     const { request, env } = context;
-    const { path } = await request.json();
+    const { key } = await request.json();
 
-    await env.LINKS.delete(path);
+    await env.LINKS.delete(key);
     return new Response(JSON.stringify({ message: 'Link deleted successfully.' }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Failed to delete link.' }), { status: 500 });

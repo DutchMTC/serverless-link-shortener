@@ -6,6 +6,8 @@ function App() {
   const [authStatus, setAuthStatus] = useState('loading'); // 'loading', 'required', 'not_required'
   const [password, setPassword] = useState('');
   const [sessionPassword, setSessionPassword] = useState('');
+  const [domains, setDomains] = useState([]);
+  const [selectedDomain, setSelectedDomain] = useState('');
 
   // Form State
   const [url, setUrl] = useState('');
@@ -38,7 +40,31 @@ function App() {
         setAuthStatus('not_required'); // Fail open
       }
     };
+
+    const fetchDomains = async () => {
+      try {
+        const response = await fetch('/api/domains');
+        const data = await response.json();
+        const availableDomains = data.domains || [];
+        setDomains(availableDomains);
+        // Set default domain to current host if available, otherwise the first in the list
+        const currentHost = window.location.host;
+        if (availableDomains.includes(currentHost)) {
+          setSelectedDomain(currentHost);
+        } else if (availableDomains.length > 0) {
+          setSelectedDomain(availableDomains[0]);
+        } else {
+          setSelectedDomain(currentHost); // Fallback to current host
+        }
+      } catch (err) {
+        console.error('Failed to fetch domains:', err);
+        setDomains([]);
+        setSelectedDomain(window.location.host); // Fallback
+      }
+    };
+
     checkAuthStatus();
+    fetchDomains();
   }, []);
 
   const handlePasswordSubmit = async (event) => {
@@ -101,6 +127,7 @@ function App() {
           embeds: enableEmbeds,
           metadata,
           cloaking: enableCloaking,
+          domain: selectedDomain,
         }),
       });
 
@@ -201,7 +228,20 @@ function App() {
           <div className="form-group">
             <label>Short link</label>
             <div className="short-link-group">
-              <div className="domain-select">{window.location.host}</div>
+              {domains.length > 1 ? (
+                <select
+                  value={selectedDomain}
+                  onChange={(e) => setSelectedDomain(e.target.value)}
+                  className="domain-select"
+                  disabled={loading}
+                >
+                  {domains.map(domain => (
+                    <option key={domain} value={domain}>{domain}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="domain-select">{selectedDomain || window.location.host}</div>
+              )}
               <span>/</span>
               <input
                 type="text"
